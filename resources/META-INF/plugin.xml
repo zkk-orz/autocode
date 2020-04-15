@@ -1,17 +1,15 @@
 <idea-plugin>
   <id>com.your.company.unique.plugin.id</id>
-  <name>Plugin display name here</name>
+  <name>Auto Code</name>
   <version>1.0</version>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <vendor email="zkkorz@outlook.com" url="">zkk</vendor>
 
   <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <em>most HTML tags may be used</em>
+      Auto Code
     ]]></description>
 
   <change-notes><![CDATA[
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>
+      2020- 04-15 GetSet 基本可以稍微使用版
     ]]>
   </change-notes>
 
@@ -29,7 +27,9 @@
   </extensions>
 
   <actions>
-    <!-- Add your actions here -->
+    <action class="GetSetConverterCodeCreator" id="GetSetConverter" text="GetSetConverter">
+      <add-to-group group-id="GenerateGroup"/>
+    </action>
   </actions>
 
 </idea-plugin>

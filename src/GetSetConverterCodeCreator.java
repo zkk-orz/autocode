@@ -23,7 +23,7 @@ public class GetSetConverterCodeCreator extends AnAction {
         }
         GetSetConvertWrapper getSetConvertWrapper = createGetSetConvertWrapper(e);
         if(getSetConvertWrapper.isValid()){
-            Messages.showMessageDialog(project, getSetConvertWrapper.createStatement(), "Test", null);
+            Messages.showMessageDialog(project, getSetConvertWrapper.createCode(), "Test", null);
         }
     }
 

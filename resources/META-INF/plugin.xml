@@ -33,6 +33,9 @@
       <action id="ExceptionSqlCreator" class="ExceptionSqlCreator" text="ExceptionSqlCreator" >
           <add-to-group group-id="GenerateGroup" anchor="last"/>
       </action>
+      <action id="DictionarySqlCreator" class="DictionarySqlCreator" text="DictionarySqlCreator">
+          <add-to-group group-id="GenerateGroup" anchor="last"/>
+      </action>
   </actions>
 
 </idea-plugin>

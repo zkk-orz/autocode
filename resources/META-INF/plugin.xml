@@ -36,6 +36,9 @@
       <action id="DictionarySqlCreator" class="DictionarySqlCreator" text="DictionarySqlCreator">
           <add-to-group group-id="GenerateGroup" anchor="last"/>
       </action>
+      <action id="DomainToCSMCreator" class="DomainToCSMCreator" text="DomainToCSMCreator">
+          <add-to-group group-id="GenerateGroup" anchor="last"/>
+      </action>
   </actions>
 
 </idea-plugin>

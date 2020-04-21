@@ -8,7 +8,8 @@ package dtcsm;
  */
 public class RequestContentCreator {
 
-    private final String requestTemplate = "import lombok.Getter;\n" +
+    private final String requestTemplate = "package ##packagePathReplace##;\n" +
+            "import lombok.Getter;\n" +
             "import lombok.Setter;\n" +
             "import java.io.Serializable;\n" +
             "import javax.validation.Valid;\n" +
@@ -21,8 +22,6 @@ public class RequestContentCreator {
             " */\n" +
             "public class ##requestClassReplace## extends RequestDTO implements Serializable {\n" +
             "\n" +
-            "\n" +
-            "    private static final long serialVersionUID = 6386698371808363434L;\n" +
             "\n" +
             "    @Getter\n" +
             "    @Setter\n" +
@@ -38,6 +37,8 @@ public class RequestContentCreator {
             "    ##paginationCodeExists##\n" +
             "        \n" +
             "}";
+
+    private final String packagePathReplace = "##packagePathReplace##";
 
     /**
      * 描述信息
@@ -67,11 +68,13 @@ public class RequestContentCreator {
         RequestContentCreator requestContentCreator = RequestContentCreator.requestContentCreator;
         String content = requestContentCreator.requestTemplate.replace(requestContentCreator.descriptionReplace, condition.getDescription())
                 .replace(requestContentCreator.requestClassReplace, condition.getRequestClassName())
-                .replace(requestContentCreator.requestDTOClassReplace, condition.getRequestDTOClassName());
+                .replace(requestContentCreator.requestDTOClassReplace, condition.getRequestDTOClassName())
+                .replace(requestContentCreator.packagePathReplace, condition.getPackagePath());
         if(!condition.isHasPaginationCode()){
             content = content.substring(0, content.indexOf(requestContentCreator.paginationCodeBlock)) +
                     content.substring(content.lastIndexOf(requestContentCreator.paginationCodeBlock) + requestContentCreator.paginationCodeBlock.length());
         }
+        content = content.replace(requestContentCreator.paginationCodeBlock, "");
         return content;
     }
 

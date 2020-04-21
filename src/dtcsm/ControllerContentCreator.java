@@ -14,6 +14,8 @@ public class ControllerContentCreator {
 
     private ControllerContentCreator(){}
 
+    private final String packagePathReplace = "##packagePathReplace##";
+
     /**
      * 名称替换符
      */
@@ -129,7 +131,23 @@ public class ControllerContentCreator {
      */
     private final String changeStatusCodeBlock = "##changeStatusCodeBlockExist##";
 
-    private final String controllerTemplate = "import javax.validation.Valid;\n" +
+    /**
+     * converter 名称
+     */
+    private final String converterNameReplace = "##converterNameReplace##";
+
+    /**
+     * domain 名称
+     */
+    private final String domainNameReplace = "##domainNameReplace##";
+
+    /**
+     * 查询条件
+     */
+    private final String queryConditionReplace = "##queryConditionReplace##";
+
+    private final String controllerTemplate = "package ##packagePathReplace##;\n" +
+            "import javax.validation.Valid;\n" +
             "import io.swagger.annotations.Api;\n" +
             "import com.github.pagehelper.Page;\n" +
             "import com.tims.common.web.BaseController;\n" +
@@ -141,6 +159,7 @@ public class ControllerContentCreator {
             "import org.springframework.beans.factory.annotation.Autowired;\n" +
             "import org.springframework.web.bind.annotation.RequestMapping;\n" +
             "import org.springframework.web.bind.annotation.RestController;\n" +
+            "import ##domainImportReplace##\n" +
             "\n" +
             "@RestController\n" +
             "@RequestMapping(value = \"/##name##\")\n" +
@@ -157,6 +176,8 @@ public class ControllerContentCreator {
             "    @ResponseBody\n" +
             "    @ApiOperation(value = \"创建##description##\")\n" +
             "    public ResponseDTO create(@RequestBody @Valid ##createRequestClassReplace## ##createRequestNameReplace##) throws Exception {\n" +
+            "        ##domainNameReplace## domain = ##converterNameReplace##.convertToCreate(##createRequestNameReplace##);\n" +
+            "        ##autowiredServiceNameReplace##.create(domain);\n" +
             "        return new ResponseDTO();\n" +
             "    }\n" +
             "    ##createMethodBlockExist##\n" +
@@ -166,6 +187,8 @@ public class ControllerContentCreator {
             "    @ResponseBody\n" +
             "    @ApiOperation(value = \"修改##description##\")\n" +
             "    public ResponseDTO update(@RequestBody @Valid ##modifyRequestClassReplace## ##modifyRequestNameReplace##) throws Exception {\n" +
+            "        ##domainNameReplace## domain = ##converterNameReplace##.convertToModify(##modifyRequestNameReplace##);\n" +
+            "        ##autowiredServiceNameReplace##.modify(domain);\n" +
             "        return new ResponseDTO();\n" +
             "    }\n" +
             "    ##modifyMethodBlockExist##\n" +
@@ -174,8 +197,10 @@ public class ControllerContentCreator {
             "    @RequestMapping(value = \"/query\", method = { RequestMethod.POST })\n" +
             "    @ResponseBody\n" +
             "    @ApiOperation(value = \"查询##description##\")\n" +
-            "    public AddressQueryResultResponse query(@RequestBody @Valid ##queryRequestClassReplace## ##queryRequestNameReplace##) throws Exception {\n" +
-            "        ##queryResponseClassReplace## ##queryResponsetNameReplace## = new ##queryResponseClassReplace##();\n" +
+            "    public ##queryResponseClassReplace## query(@RequestBody @Valid ##queryRequestClassReplace## ##queryRequestNameReplace##) throws Exception {\n" +
+            "        ##queryConditionReplace## condition = ##converterNameReplace##.convertToQuery(##queryRequestNameReplace##);\n" +
+            "        Page<##domainNameReplace##> result = ##autowiredServiceNameReplace##.queryByPage(condition);\n" +
+            "        ##queryResponseClassReplace## ##queryResponsetNameReplace## = ##converterNameReplace##.convertToQueryResult(result);\n" +
             "        return ##queryResponsetNameReplace##;\n" +
             "    }\n" +
             "    ##queryMethodBlockExist##\n" +
@@ -185,6 +210,8 @@ public class ControllerContentCreator {
             "    @ResponseBody\n" +
             "    @ApiOperation(value = \"删除##description##\")\n" +
             "    public ResponseDTO delete(@RequestBody @Valid ##deleteRequestClassReplace## ##deleteRequestNameReplace##) throws Exception {\n" +
+            "        ##domainNameReplace## domain = ##converterNameReplace##.convertToDelete(##deleteRequestNameReplace##);\n" +
+            "        ##autowiredServiceNameReplace##.delete(domain);\n" +
             "        return new ResponseDTO();\n" +
             "    }\n" +
             "    ##deleteMethodBlockExist##\n" +
@@ -194,6 +221,8 @@ public class ControllerContentCreator {
             "    @ResponseBody\n" +
             "    @ApiOperation(value = \"改变##description##状态\")\n" +
             "    public ResponseDTO changeStatus(@RequestBody @Valid ##changeStatusRequestClassReplace## ##changeStatusRequestNameReplace##) throws Exception {\n" +
+            "        ##domainNameReplace## domain = ##converterNameReplace##.convertToChangeStatus(##changeStatusRequestNameReplace##);\n" +
+            "        ##autowiredServiceNameReplace##.changeStatus(domain);\n" +
             "        return new ResponseDTO();\n" +
             "    }\n" +
             "    ##changeStatusCodeBlockExist##\n" +
@@ -204,10 +233,14 @@ public class ControllerContentCreator {
         ControllerContentCreator controllerContentCreator = ControllerContentCreator.controllerContentCreator;
         String content = controllerContentCreator.controllerTemplate.replace(controllerContentCreator.nameReplace, condition.getName())
                 .replace(controllerContentCreator.descriptionReplace, condition.getDescription())
-                .replace(controllerContentCreator.controllerClassNameReplace, condition.getControllerClassName());
+                .replace(controllerContentCreator.controllerClassNameReplace, condition.getControllerClassName())
+                .replace(controllerContentCreator.packagePathReplace, condition.getPackagePath())
+                .replace(controllerContentCreator.converterNameReplace, condition.getConverterName())
+                .replace(controllerContentCreator.domainNameReplace, condition.getDomainName())
+                .replace("##domainImportReplace##", condition.getDomainImport());
         if(!condition.isHasAutowiredService()){
             content = content.substring(0, content.indexOf(controllerContentCreator.autowiredCodeBlock)) +
-                    content.substring(content.lastIndexOf(controllerContentCreator.autowiredCodeBlock));
+                    content.substring(content.lastIndexOf(controllerContentCreator.autowiredCodeBlock) + controllerContentCreator.autowiredCodeBlock.length());
         } else {
             content = content.replace(controllerContentCreator.autowiredServiceClassReplace, condition.getAutowiredService())
                     .replace(controllerContentCreator.autowiredServiceNameReplace, StringUtil.doFirstCharLower(condition.getAutowiredService()))
@@ -215,7 +248,7 @@ public class ControllerContentCreator {
         }
         if(!condition.isHasCreateMethod()){
             content = content.substring(0, content.indexOf(controllerContentCreator.createMethodBlock)) +
-                    content.substring(content.lastIndexOf(controllerContentCreator.createMethodBlock));
+                    content.substring(content.lastIndexOf(controllerContentCreator.createMethodBlock) + controllerContentCreator.createMethodBlock.length());
         } else {
             content = content.replace(controllerContentCreator.createRequestClassReplace, condition.getCreateRequest())
                     .replace(controllerContentCreator.createRequestNameReplace, StringUtil.doFirstCharLower(condition.getCreateRequest()))
@@ -223,7 +256,7 @@ public class ControllerContentCreator {
         }
         if(!condition.isHasModifyMethod()){
             content = content.substring(0, content.indexOf(controllerContentCreator.modifyMethodBlock)) +
-                    content.substring(content.lastIndexOf(controllerContentCreator.modifyMethodBlock));
+                    content.substring(content.lastIndexOf(controllerContentCreator.modifyMethodBlock) + controllerContentCreator.modifyMethodBlock.length());
         } else {
             content = content.replace(controllerContentCreator.modifyRequestClassReplace, condition.getModifyRequest())
                     .replace(controllerContentCreator.modifyRequestNameReplace, StringUtil.doFirstCharLower(condition.getModifyRequest()))
@@ -231,7 +264,7 @@ public class ControllerContentCreator {
         }
         if(!condition.isHasDeleteMethod()){
             content = content.substring(0, content.indexOf(controllerContentCreator.deleteMethodBlock)) +
-                    content.substring(content.lastIndexOf(controllerContentCreator.deleteMethodBlock));
+                    content.substring(content.lastIndexOf(controllerContentCreator.deleteMethodBlock) + controllerContentCreator.deleteMethodBlock.length());
         } else {
             content = content.replace(controllerContentCreator.deleteRequestClassReplace, condition.getDeleteRequest())
                     .replace(controllerContentCreator.deleteRequestNameReplace, StringUtil.doFirstCharLower(condition.getDeleteRequest()))
@@ -239,7 +272,7 @@ public class ControllerContentCreator {
         }
         if(!condition.isHasChangeStatusMethod()){
             content = content.substring(0, content.indexOf(controllerContentCreator.changeStatusCodeBlock)) +
-                    content.substring(content.lastIndexOf(controllerContentCreator.changeStatusCodeBlock));
+                    content.substring(content.lastIndexOf(controllerContentCreator.changeStatusCodeBlock) + controllerContentCreator.changeStatusCodeBlock.length());
         } else {
             content = content.replace(controllerContentCreator.changeStatusRequestClassReplace, condition.getChangeStatusRequest())
                     .replace(controllerContentCreator.changeStatusRequestNameReplace, StringUtil.doFirstCharLower(condition.getChangeStatusRequest()))
@@ -247,9 +280,10 @@ public class ControllerContentCreator {
         }
         if(!condition.isHasQueryMethod()){
             content = content.substring(0, content.indexOf(controllerContentCreator.queryMethodBlock)) +
-                    content.substring(content.lastIndexOf(controllerContentCreator.queryMethodBlock));
+                    content.substring(content.lastIndexOf(controllerContentCreator.queryMethodBlock) + controllerContentCreator.queryMethodBlock.length());
         } else {
             content = content.replace(controllerContentCreator.queryRequestClassReplace, condition.getQueryRequest())
+                    .replace(controllerContentCreator.queryConditionReplace, condition.getQueryCondition())
                     .replace(controllerContentCreator.queryRequestNameReplace, StringUtil.doFirstCharLower(condition.getQueryRequest()))
                     .replace(controllerContentCreator.queryResponseClassReplace, condition.getQueryResponse())
                     .replace(controllerContentCreator.queryResponseNameReplace, StringUtil.doFirstCharLower(condition.getQueryResponse()))

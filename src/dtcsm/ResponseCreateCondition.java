@@ -6,13 +6,13 @@ package dtcsm;
  * @author zkk
  * @since 2020/4/17 12:25
  */
-public class RequestCreateCondition {
+public class ResponseCreateCondition {
 
     private String description;
 
-    private String requestClassName;
+    private String responseClassName;
 
-    private String requestDTOClassName;
+    private String responseDTOClassName;
 
     private boolean hasPaginationCode;
 
@@ -34,20 +34,20 @@ public class RequestCreateCondition {
         this.description = description;
     }
 
-    public String getRequestClassName() {
-        return requestClassName;
+    public String getResponseClassName() {
+        return responseClassName;
     }
 
-    public void setRequestClassName(String requestClassName) {
-        this.requestClassName = requestClassName;
+    public void setResponseClassName(String responseClassName) {
+        this.responseClassName = responseClassName;
     }
 
-    public String getRequestDTOClassName() {
-        return requestDTOClassName;
+    public String getResponseDTOClassName() {
+        return responseDTOClassName;
     }
 
-    public void setRequestDTOClassName(String requestDTOClassName) {
-        this.requestDTOClassName = requestDTOClassName;
+    public void setResponseDTOClassName(String responseDTOClassName) {
+        this.responseDTOClassName = responseDTOClassName;
     }
 
     public boolean isHasPaginationCode() {

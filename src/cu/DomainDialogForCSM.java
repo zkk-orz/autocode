@@ -1,6 +1,7 @@
 package cu;
 
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -39,6 +40,8 @@ import util.PsiFileUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,8 +67,8 @@ public class DomainDialogForCSM extends DialogWrapper {
 
     private final Map<PsiField, DomainToCSMJComponentRecord> map = new HashMap<>();
 
-    private JLabel packagePathLabel = new JLabel("包路径");
-    private JTextField packagePathText = new JTextField();
+    private JLabel reLabel1 = new JLabel();
+    private JLabel reLabel2 = new JLabel();
     private JLabel classNameLabel = new JLabel("类名");
     private JTextField classNameText = new JTextField();
     private JLabel descriptionLabel = new JLabel();
@@ -92,8 +95,8 @@ public class DomainDialogForCSM extends DialogWrapper {
             PsiField[] psiFields = psiClass.getFields();
             if(psiFields.length > 0){
                 center.setLayout(new GridLayout(psiFields.length + 1, 7));
-                center.add(packagePathLabel);
-                center.add(packagePathText);
+                center.add(reLabel1);
+                center.add(reLabel2);
                 center.add(classNameLabel);
                 center.add(classNameText);
                 center.add(descriptionLabel);
@@ -142,12 +145,18 @@ public class DomainDialogForCSM extends DialogWrapper {
                 && className.length() > 0 && description.length() > 0){
                 PsiDirectory psiDirectory = createPsiDirectory();
                 if(Objects.nonNull(psiDirectory)){
-                    FileCreator fileCreator = new FileCreator(map);
-                    List<FileContentResult> fileContentResults = fileCreator.getRequestContent(description, className);
+                    FileCreator fileCreator = new FileCreator(map, getPackagePath());
+                    PsiClass psiClass = PsiFileUtils.getSinglePsiClass(psiFile);
+                    if(Objects.nonNull(psiClass)){
+                        fileCreator.setDomainClass(psiClass.getName());
+                    }
+                    fileCreator.setDomainImport(getDomainImport());
+                    List<FileContentResult> fileContentResults = fileCreator.getFileContent(description, className);
                     if(Objects.nonNull(fileContentResults) && fileContentResults.size() > 0){
+                        Messages.showMessageDialog("共生成文件" + fileContentResults.size() + "个" , "文件总数量", null);
                         for(FileContentResult result : fileContentResults){
-                            Messages.showMessageDialog(result.getContent(), result.getName(), null);
                             createFileInWriteCommandAction(psiDirectory, result.getContent(), result.getName());
+                            //createFileInWriteCommandActionByTwo(result.getContent(), result.getName());
                         }
                     }
                     //createClassOrInterface(psiDirectory, ControllerContentCreator.getContent(), className);
@@ -158,16 +167,64 @@ public class DomainDialogForCSM extends DialogWrapper {
         }
     }
 
-    private void createFileInWriteCommandAction(PsiDirectory directory, String content, String fileName) {
+    PsiDirectory psiDirectory = null;
+
+    private void createFileInWriteCommandActionByTwo(String content, String fileName) {
         final String name = fileName + "." + StdFileTypes.JAVA.getDefaultExtension();
         PsiJavaFile psiJavaFile = (PsiJavaFile)PsiFileFactory.getInstance(project).createFileFromText(name, StdFileTypes.JAVA, content);
         PsiClass createdClass = psiJavaFile.getClasses()[0];
         String className = createdClass.getName();
         CodeStyleManager.getInstance(project).reformat(psiJavaFile);
-        JavaDirectoryServiceImpl.checkCreateClassOrInterface(directory, className);
+        final PsiJavaFile finalPsiJavaFile = (PsiJavaFile)psiJavaFile.setName(className + "." + StdFileTypes.JAVA.getDefaultExtension());
+        String basePath = psiFile.getVirtualFile().getPath();
+        basePath = basePath.replace(".java", "/").toLowerCase();
+//        try {
+//            File dir = new File(basePath);
+//            if(dir.exists()){
+//                Messages.showMessageDialog(basePath, "创建路径", null);
+//                dir.mkdir();
+//            }
+//            File file = new File(basePath + fileName + ".java");
+//            if(file.exists()) {
+//                Messages.showMessageDialog(file.getParent(), "创建路径", null);
+//                file.getParentFile().mkdir();
+//            }
+//            if(file.createNewFile()){
+//                Messages.showMessageDialog(content, "创建文件" + fileName, null);
+//                try (FileWriter fw = new FileWriter(basePath + fileName + ".java")){
+//                    fw.write(content);
+//                    fw.flush();
+//                }
+//            }
+//        } catch (Exception e){
+//            Messages.showMessageDialog(e.getMessage(), fileName, null);
+//        }
+        Messages.showMessageDialog(finalPsiJavaFile.getText(), fileName, null);
+        RunResult s = new WriteCommandAction.Simple(project, finalPsiJavaFile) {
+            @Override
+            protected void run() throws Throwable {
+                if(Objects.isNull(psiDirectory)){
+                    psiDirectory = createPsiDirectory();
+                }
+                if(Objects.nonNull(psiDirectory)){
+                    JavaDirectoryServiceImpl.checkCreateClassOrInterface(psiDirectory, className);
+                    psiDirectory.add(finalPsiJavaFile);
+                }
+            }
+        }.execute();
+        Messages.showMessageDialog(s.getResultObject().toString(), fileName, null);
+    }
+
+    private void createFileInWriteCommandAction(PsiDirectory directory, String content, String fileName) {
+        Messages.showMessageDialog(content, fileName, null);
+        final String name = fileName + "." + StdFileTypes.JAVA.getDefaultExtension();
+        PsiJavaFile psiJavaFile = (PsiJavaFile)PsiFileFactory.getInstance(project).createFileFromText(name, StdFileTypes.JAVA, content);
+        PsiClass createdClass = psiJavaFile.getClasses()[0];
+        String className = createdClass.getName();
+        CodeStyleManager.getInstance(project).reformat(psiJavaFile);
+        //JavaDirectoryServiceImpl.checkCreateClassOrInterface(directory, className);
         final LanguageLevel ll = JavaDirectoryService.getInstance().getLanguageLevel(directory);
         final PsiJavaFile finalPsiJavaFile = (PsiJavaFile)psiJavaFile.setName(className + "." + StdFileTypes.JAVA.getDefaultExtension());
-        Messages.showMessageDialog("添加文件", "Test", null);
         new WriteCommandAction.Simple(project, finalPsiJavaFile) {
             @Override
             protected void run() throws Throwable {
@@ -176,11 +233,24 @@ public class DomainDialogForCSM extends DialogWrapper {
         }.execute();
     }
 
+    private String getDomainImport(){
+        String packagePath = psiFile.getVirtualFile().getPath();
+        packagePath = packagePath.replace(".java", ";");
+        packagePath = packagePath.substring(packagePath.indexOf("src.") + 4);
+        return packagePath;
+    }
+
+    private String getPackagePath(){
+        String packagePath = psiFile.getVirtualFile().getPath();
+        packagePath = packagePath.replace(".java", "").toLowerCase();
+        packagePath = packagePath.substring(packagePath.indexOf("src.") + 4);
+        return packagePath;
+    }
+
     private PsiDirectory createPsiDirectory() {
         try {
             String basePath = psiFile.getVirtualFile().getPath();
             basePath = basePath.replace(".java", "/").toLowerCase();
-            Messages.showMessageDialog(basePath, "路径", null);
             PsiManagerImpl psiManager = (PsiManagerImpl) PsiManagerImpl.getInstance(project);
             VirtualFile virtualFile1 = VfsUtil.createDirectoryIfMissing(basePath);
             return new PsiJavaDirectoryImpl(psiManager, virtualFile1);

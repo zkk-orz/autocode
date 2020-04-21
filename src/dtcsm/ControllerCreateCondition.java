@@ -10,6 +10,18 @@ import com.intellij.psi.PsiFile;
  */
 public class ControllerCreateCondition {
 
+    private String domainImport;
+
+    public String getDomainImport() {
+        return domainImport;
+    }
+
+    public void setDomainImport(String domainImport) {
+        this.domainImport = domainImport;
+    }
+
+    private String packagePath;
+
     private String name;
 
     private String description;
@@ -41,6 +53,44 @@ public class ControllerCreateCondition {
     private String queryRequest;
 
     private String queryResponse;
+
+    private String converterName;
+
+    private String domainName;
+
+    private String queryCondition;
+
+    public String getQueryCondition() {
+        return queryCondition;
+    }
+
+    public void setQueryCondition(String queryCondition) {
+        this.queryCondition = queryCondition;
+    }
+
+    public String getDomainName() {
+        return domainName;
+    }
+
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
+    }
+
+    public String getConverterName() {
+        return converterName;
+    }
+
+    public void setConverterName(String converterName) {
+        this.converterName = converterName;
+    }
+
+    public String getPackagePath() {
+        return packagePath;
+    }
+
+    public void setPackagePath(String packagePath) {
+        this.packagePath = packagePath;
+    }
 
     public String getName() {
         return name;

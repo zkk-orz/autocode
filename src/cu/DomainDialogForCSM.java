@@ -153,7 +153,6 @@ public class DomainDialogForCSM extends DialogWrapper {
                     fileCreator.setDomainImport(getDomainImport());
                     List<FileContentResult> fileContentResults = fileCreator.getFileContent(description, className);
                     if(Objects.nonNull(fileContentResults) && fileContentResults.size() > 0){
-                        Messages.showMessageDialog("共生成文件" + fileContentResults.size() + "个" , "文件总数量", null);
                         for(FileContentResult result : fileContentResults){
                             createFileInWriteCommandAction(psiDirectory, result.getContent(), result.getName());
                             //createFileInWriteCommandActionByTwo(result.getContent(), result.getName());
@@ -199,7 +198,6 @@ public class DomainDialogForCSM extends DialogWrapper {
 //        } catch (Exception e){
 //            Messages.showMessageDialog(e.getMessage(), fileName, null);
 //        }
-        Messages.showMessageDialog(finalPsiJavaFile.getText(), fileName, null);
         RunResult s = new WriteCommandAction.Simple(project, finalPsiJavaFile) {
             @Override
             protected void run() throws Throwable {
@@ -216,7 +214,6 @@ public class DomainDialogForCSM extends DialogWrapper {
     }
 
     private void createFileInWriteCommandAction(PsiDirectory directory, String content, String fileName) {
-        Messages.showMessageDialog(content, fileName, null);
         final String name = fileName + "." + StdFileTypes.JAVA.getDefaultExtension();
         PsiJavaFile psiJavaFile = (PsiJavaFile)PsiFileFactory.getInstance(project).createFileFromText(name, StdFileTypes.JAVA, content);
         PsiClass createdClass = psiJavaFile.getClasses()[0];

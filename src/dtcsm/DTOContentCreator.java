@@ -30,7 +30,19 @@ public class DTOContentCreator {
             "\tprivate String ##fieldNameReplace##;\n" +
             "\n";
 
-    private final String dtoEndTemplate = "}";
+    private final String sortFields = "\n" +
+            "\t\n" +
+            "\t@Setter\n" +
+            "\t@Getter\n" +
+            "\t@ApiModelProperty(value=\"排序\",dataType=\"Integer\",example=\"DESC\")\n" +
+            "\tprivate String sortType;\n" +
+            "\t    \n" +
+            "\t@Setter\n" +
+            "\t@Getter\n" +
+            "\t@ApiModelProperty(value=\"排序字段\",dataType=\"Integer\",example=\"createTime\")\n" +
+            "\tprivate String sortValue;";
+
+    private final String dtoEndTemplate = "\n" + "}";
 
     private final String packagePathReplace = "##packagePathReplace##";
 
@@ -87,6 +99,9 @@ public class DTOContentCreator {
                 }
                 sb.append(proStr);
             }
+        }
+        if(condition.isRequest() && condition.getDtoClassName().toLowerCase().contains("query")){
+            sb.append(dtoContentCreator.sortFields);
         }
         sb.append(dtoContentCreator.dtoEndTemplate);
         return sb.toString();

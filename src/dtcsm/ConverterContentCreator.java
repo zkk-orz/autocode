@@ -1,5 +1,8 @@
 package dtcsm;
 
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.util.PsiUtil;
 import util.StringUtil;
 
 import java.util.List;
@@ -158,6 +161,7 @@ public class ConverterContentCreator {
             "import lombok.NoArgsConstructor;\n" +
             "import com.github.pagehelper.Page;\n" +
             "import com.tims.common.dto.PaginationDTO;\n" +
+            "import com.tims.common.session.SysContent;\n" +
             "import com.tims.framework.util.StringUtil;\n" +
             "import com.tims.framework.util.ObjectConvertor;\n" +
             "import com.tims.framework.constant.PaginationEnum;\n" +
@@ -201,10 +205,10 @@ public class ConverterContentCreator {
             "\t\t\tqueryCondition.setSortValue(reqDtos.getSortValue());\n" +
             "\t\t\tqueryCondition.setLang(SysContent.getCurrentUserLanguage());\n" +
             "\t\t\tif (request.getPaginationDTO() != null && request.getPaginationDTO().getPageNumber() != null && request.getPaginationDTO().getPageSize() != null) {\n" +
-            "\t\t\t\tqueryCondition.pageNumber(request.getPaginationDTO().getPageNumber());\n" +
+            "\t\t\t\tqueryCondition.setPageNumber(request.getPaginationDTO().getPageNumber());\n" +
             "\t\t\t\tqueryCondition.setPageSize(request.getPaginationDTO().getPageSize());\n" +
             "\t\t\t} else {\n" +
-            "\t\t\t\tqueryCondition.pageNumber(PaginationEnum.DEFAULT_PAGENUMBER.getCode());\n" +
+            "\t\t\t\tqueryCondition.setPageNumber(PaginationEnum.DEFAULT_PAGENUMBER.getCode());\n" +
             "\t\t\t\tqueryCondition.setPageSize(PaginationEnum.DEFAULT_PAGESIZE.getCode());\n" +
             "\t\t\t}\n" +
             "\t\t\treturn queryCondition;\n" +
@@ -222,7 +226,7 @@ public class ConverterContentCreator {
             "\t\t\t\tdata.add(queryRes);\n" +
             "\t\t\t}\n" +
             "\t\t\tPaginationDTO paginationDTO = new PaginationDTO();\n" +
-            "\t\t\tpaginationDTO.setPageNumber(domains.pageNumber());\n" +
+            "\t\t\tpaginationDTO.setPageNumber(domains.getPageNum());\n" +
             "\t\t\tpaginationDTO.setPageSize(domains.getPageSize());\n" +
             "\t\t\tpaginationDTO.setTotalCount(domains.getTotal());\n" +
             "\t\t\tresponse.setPaginationDTO(paginationDTO); \n" +
@@ -318,29 +322,84 @@ public class ConverterContentCreator {
         return content;
     }
 
-    private static CharSequence createGetSetCodeForDomainToResponse(List<String> fieldNames) {
+    private static CharSequence createGetSetCodeForDomainToResponse(List<PsiField> fieldNames) {
         StringBuilder sb = new StringBuilder();
-        for(String fieldName : fieldNames){
-            sb.append("queryRes.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(domain.get").append(StringUtil.doFirstCharUpper(fieldName)).append("());");
-            sb.append(LINE_SEPARATOR);
+        for(PsiField psiField : fieldNames){
+            PsiClass fieldTypeClass = PsiUtil.resolveClassInClassTypeOnly(psiField.getType());
+            String fieldName = psiField.getName();
+            if(Objects.nonNull(fieldTypeClass)){
+                if(Objects.equals(fieldTypeClass.getName(), "Integer")){
+                    sb.append("queryRes.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(StringUtil.valueOf(domain.get").append(StringUtil.doFirstCharUpper(fieldName)).append("()));");
+                    sb.append(LINE_SEPARATOR);
+                } else if (Objects.equals(fieldTypeClass.getName(), "Date")){
+                    sb.append("queryRes.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(DateUtil.toYMDHSString(domain.get").append(StringUtil.doFirstCharUpper(fieldName)).append("()));");
+                    sb.append(LINE_SEPARATOR);
+                } else if (Objects.equals(fieldTypeClass.getName(), "BigDecimal")){
+                    sb.append("BigDecimal ").append(StringUtil.doFirstCharLower(fieldName)).append(" = ")
+                            .append("domain.get").append(StringUtil.doFirstCharUpper(fieldName)).append("();")
+                            .append(LINE_SEPARATOR).append(StringUtil.doFirstCharLower(fieldName)).append(" = Objects.isNull(")
+                            .append(StringUtil.doFirstCharLower(fieldName)).append(") ? BigDecimal.ZERO : ")
+                            .append(StringUtil.doFirstCharLower(fieldName)).append(";").append(LINE_SEPARATOR)
+                            .append("queryRes.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(")
+                            .append(StringUtil.doFirstCharLower(fieldName))
+                            .append(".setScale(2, BigDecimal.ROUND_CEILING).toString());");
+                } else {
+                    sb.append("queryRes.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(domain.get").append(StringUtil.doFirstCharUpper(fieldName)).append("());");
+                    sb.append(LINE_SEPARATOR);
+                }
+            }
         }
         return sb.toString();
     }
 
-    private static CharSequence createGetSetCodeForRequestToDomain(List<String> fieldNames) {
+    private static CharSequence createGetSetCodeForRequestToDomain(List<PsiField> fieldNames) {
         StringBuilder sb = new StringBuilder();
-        for(String fieldName : fieldNames){
-            sb.append("domain.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("());");
-            sb.append(LINE_SEPARATOR);
+        for(PsiField psiField : fieldNames){
+            PsiClass fieldTypeClass = PsiUtil.resolveClassInClassTypeOnly(psiField.getType());
+            String fieldName = psiField.getName();
+            if(Objects.nonNull(fieldTypeClass)){
+                if(Objects.equals(fieldTypeClass.getName(), "Integer")){
+                    sb.append("domain.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(StringUtil.toIntegerAsNull(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("()));");
+                    sb.append(LINE_SEPARATOR);
+                } else if (Objects.equals(fieldTypeClass.getName(), "Date")){
+                    sb.append("domain.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(DateUtil.parseDate(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("()));");
+                    sb.append(LINE_SEPARATOR);
+                } else if (Objects.equals(fieldTypeClass.getName(), "BigDecimal")){
+                    sb.append("if(StringUtil.isNotBlank(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName))
+                            .append("()").append(")) {").append(LINE_SEPARATOR).append("domain.set")
+                            .append(StringUtil.doFirstCharUpper(fieldName)).append("(BigDecimal.valueOf(")
+                            .append("reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("()));").append(LINE_SEPARATOR).append("}");
+                } else {
+                    sb.append("domain.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("());");
+                    sb.append(LINE_SEPARATOR);
+                }
+            }
         }
         return sb.toString();
     }
 
-    private static CharSequence createGetSetCodeForRequestToQueryCondition(List<String> fieldNames) {
+    private static CharSequence createGetSetCodeForRequestToQueryCondition(List<PsiField> fieldNames) {
         StringBuilder sb = new StringBuilder();
-        for(String fieldName : fieldNames){
-            sb.append("queryCondition.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("());");
-            sb.append(LINE_SEPARATOR);
+        for(PsiField psiField : fieldNames){
+            PsiClass fieldTypeClass = PsiUtil.resolveClassInClassTypeOnly(psiField.getType());
+            String fieldName = psiField.getName();
+            if(Objects.nonNull(fieldTypeClass)){
+                if(Objects.equals(fieldTypeClass.getName(), "Integer")){
+                    sb.append("queryCondition.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(StringUtil.toIntegerAsNull(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("()));");
+                    sb.append(LINE_SEPARATOR);
+                } else if (Objects.equals(fieldTypeClass.getName(), "Date")){
+                    sb.append("queryCondition.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(DateUtil.parseDate(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("()));");
+                    sb.append(LINE_SEPARATOR);
+                } else if (Objects.equals(fieldTypeClass.getName(), "BigDecimal")){
+                    sb.append("if(StringUtil.isNotBlank(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName))
+                            .append("()").append(")) {").append(LINE_SEPARATOR).append("queryCondition.set")
+                            .append(StringUtil.doFirstCharUpper(fieldName)).append("(BigDecimal.valueOf(")
+                            .append("reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("()));").append(LINE_SEPARATOR).append("}");
+                } else {
+                    sb.append("queryCondition.set").append(StringUtil.doFirstCharUpper(fieldName)).append("(reqDtos.get").append(StringUtil.doFirstCharUpper(fieldName)).append("());");
+                    sb.append(LINE_SEPARATOR);
+                }
+            }
         }
         return sb.toString();
     }

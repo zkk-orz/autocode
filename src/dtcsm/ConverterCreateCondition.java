@@ -1,5 +1,7 @@
 package dtcsm;
 
+import com.intellij.psi.PsiField;
+
 import java.util.List;
 
 /**
@@ -43,7 +45,7 @@ public class ConverterCreateCondition {
     /**
      * 创建字段名称列表
      */
-    private List<String> createFieldNames;
+    private List<PsiField> createFieldNames;
 
     /**
      * create request 类名称
@@ -63,7 +65,7 @@ public class ConverterCreateCondition {
     /**
      * 修改字段名称列表
      */
-    private List<String> modifyFieldNames;
+    private List<PsiField> modifyFieldNames;
 
     /**
      * create request 类名称
@@ -83,7 +85,7 @@ public class ConverterCreateCondition {
     /**
      * 删除字段名称列表
      */
-    private List<String> deleteFieldNames;
+    private List<PsiField> deleteFieldNames;
 
     /**
      * delete request 类名称
@@ -103,7 +105,7 @@ public class ConverterCreateCondition {
     /**
      * 修改状态字段名称列表
      */
-    private List<String> changeStatusFieldNames;
+    private List<PsiField> changeStatusFieldNames;
 
     /**
      * change status request 类名称
@@ -123,7 +125,7 @@ public class ConverterCreateCondition {
     /**
      * 查询字段名称列表
      */
-    private List<String> queryFieldNames;
+    private List<PsiField> queryFieldNames;
 
     /**
      * query condition 类名称
@@ -182,11 +184,11 @@ public class ConverterCreateCondition {
         this.domainClassName = domainClassName;
     }
 
-    public List<String> getCreateFieldNames() {
+    public List<PsiField> getCreateFieldNames() {
         return createFieldNames;
     }
 
-    public void setCreateFieldNames(List<String> createFieldNames) {
+    public void setCreateFieldNames(List<PsiField> createFieldNames) {
         this.createFieldNames = createFieldNames;
     }
 
@@ -214,11 +216,11 @@ public class ConverterCreateCondition {
         this.hasModifyConverter = hasModifyConverter;
     }
 
-    public List<String> getModifyFieldNames() {
+    public List<PsiField> getModifyFieldNames() {
         return modifyFieldNames;
     }
 
-    public void setModifyFieldNames(List<String> modifyFieldNames) {
+    public void setModifyFieldNames(List<PsiField> modifyFieldNames) {
         this.modifyFieldNames = modifyFieldNames;
     }
 
@@ -246,11 +248,11 @@ public class ConverterCreateCondition {
         this.hasDeleteConverter = hasDeleteConverter;
     }
 
-    public List<String> getDeleteFieldNames() {
+    public List<PsiField> getDeleteFieldNames() {
         return deleteFieldNames;
     }
 
-    public void setDeleteFieldNames(List<String> deleteFieldNames) {
+    public void setDeleteFieldNames(List<PsiField> deleteFieldNames) {
         this.deleteFieldNames = deleteFieldNames;
     }
 
@@ -278,11 +280,11 @@ public class ConverterCreateCondition {
         this.hasChangeStatusConverter = hasChangeStatusConverter;
     }
 
-    public List<String> getChangeStatusFieldNames() {
+    public List<PsiField> getChangeStatusFieldNames() {
         return changeStatusFieldNames;
     }
 
-    public void setChangeStatusFieldNames(List<String> changeStatusFieldNames) {
+    public void setChangeStatusFieldNames(List<PsiField> changeStatusFieldNames) {
         this.changeStatusFieldNames = changeStatusFieldNames;
     }
 
@@ -310,11 +312,11 @@ public class ConverterCreateCondition {
         this.hasQueryConverter = hasQueryConverter;
     }
 
-    public List<String> getQueryFieldNames() {
+    public List<PsiField> getQueryFieldNames() {
         return queryFieldNames;
     }
 
-    public void setQueryFieldNames(List<String> queryFieldNames) {
+    public void setQueryFieldNames(List<PsiField> queryFieldNames) {
         this.queryFieldNames = queryFieldNames;
     }
 

@@ -89,7 +89,6 @@ public class QueryConditionContentCreator {
             }
         }
         sb.append(queryConditionContentCreator.dtoEndTemplate);
-        Messages.showMessageDialog(sb.toString(), "Condition", null);
         return sb.toString();
     }
 

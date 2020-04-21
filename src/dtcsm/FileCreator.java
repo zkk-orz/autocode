@@ -167,7 +167,6 @@ public class FileCreator {
             fileContentResult.setContent(MapperContentCreator.getContent(mapperCreateCondition));
             fileContentResult.setName(createMapperName(className));
             fileContentResults.add(fileContentResult);
-            Messages.showMessageDialog("Mapper 生成" + fileContentResults.size()+ "个文件", "Mapper", null);
             return fileContentResults;
         }
         return new ArrayList<>();
@@ -189,7 +188,6 @@ public class FileCreator {
             fileContentResult.setContent(ServiceImplContentCreator.getContent(serviceCreateCondition));
             fileContentResult.setName(createServiceImplName(className));
             fileContentResults.add(fileContentResult);
-            Messages.showMessageDialog("ServiceImpl 生成" + fileContentResults.size()+ "个文件", "ServiceImpl", null);
             return fileContentResults;
         }
         return new ArrayList<>();
@@ -209,7 +207,6 @@ public class FileCreator {
             fileContentResult.setContent(ServiceContentCreator.getContent(serviceCreateCondition));
             fileContentResult.setName(createServiceName(className));
             fileContentResults.add(fileContentResult);
-            Messages.showMessageDialog("Service 生成" + fileContentResults.size()+ "个文件", "Service", null);
             return fileContentResults;
         }
         return new ArrayList<>();
@@ -244,12 +241,12 @@ public class FileCreator {
                     converterCreateCondition.setHasChangeStatusConverter(true);
                     converterCreateCondition.setChangeStatusRequestClassName(createRequestName(methodEnum, className));
                     converterCreateCondition.setChangeStatusRequestDTOClassName(createRequestDTOName(methodEnum, className));
-                    converterCreateCondition.setModifyFieldNames(getNeedFieldName(methodEnum));
+                    converterCreateCondition.setChangeStatusFieldNames(getNeedFieldName(methodEnum));
                 } else if(Objects.equals(methodEnum, MethodEnum.QUERY)){
                     converterCreateCondition.setHasQueryConverter(true);
                     converterCreateCondition.setQueryFieldNames(getNeedFieldName(methodEnum));
                     converterCreateCondition.setQueryConditionClassName(createQueryConditionName(className));
-                    converterCreateCondition.setChangeStatusFieldNames(getNeedFieldName(methodEnum));
+                    converterCreateCondition.setQueryFieldNames(getNeedFieldName(methodEnum));
                     converterCreateCondition.setQueryRequestClassName(createRequestName(methodEnum, className));
                     converterCreateCondition.setQueryRequestDTOClassName(createRequestDTOName(methodEnum, className));
                     converterCreateCondition.setQueryResponseClassName(createResponseName(methodEnum, className));
@@ -260,14 +257,13 @@ public class FileCreator {
             fileContentResult.setContent(ConverterContentCreator.getContent(converterCreateCondition));
             fileContentResult.setName(createConverterName(className));
             fileContentResults.add(fileContentResult);
-            Messages.showMessageDialog("Converter 生成" + fileContentResults.size()+ "个文件", "Converter", null);
             return fileContentResults;
         }
         return new ArrayList<>();
     }
 
-    private List<String> getNeedFieldName(MethodEnum methodEnum){
-        List<String> fieldNames = new ArrayList<>();
+    private List<PsiField> getNeedFieldName(MethodEnum methodEnum){
+        List<PsiField> fieldNames = new ArrayList<>();
         for(Map.Entry<PsiField, DomainToCSMJComponentRecord> entry : this.map.entrySet()){
             PsiField psiField = entry.getKey();
             DomainToCSMJComponentRecord record = entry.getValue();
@@ -276,7 +272,7 @@ public class FileCreator {
                     (record.getDelete().isSelected() && Objects.equals(MethodEnum.DELETE, methodEnum)) ||
                     (record.getStatusChange().isSelected() && Objects.equals(MethodEnum.CHANGE_STATUS, methodEnum)) ||
                     (record.getQuery().isSelected() && Objects.equals(MethodEnum.QUERY, methodEnum))){
-                fieldNames.add(psiField.getName());
+                fieldNames.add(psiField);
             }
         }
         return fieldNames;
@@ -320,7 +316,6 @@ public class FileCreator {
             fileContentResult.setContent(ControllerContentCreator.getContent(controllerCreateCondition));
             fileContentResult.setName(controllerCreateCondition.getControllerClassName());
             fileContentResults.add(fileContentResult);
-            Messages.showMessageDialog("Controller 生成" + fileContentResults.size()+ "个文件", "Controller", null);
             return fileContentResults;
         }
         return new ArrayList<>();
@@ -385,18 +380,9 @@ public class FileCreator {
                 createCondition.setFieldName(psiField.getName());
                 String description = record.getTextField().getText();
                 createCondition.setFieldDescription((Objects.isNull(description) || description.length() <= 0) ? psiField.getName() : description);
-                PsiClassType.ClassResolveResult classResolveResult = PsiUtil.resolveGenericsClassInType(psiField.getType());
-                if(Objects.nonNull(classResolveResult.getElement())) {
-                    Map<PsiTypeParameter, PsiType> map = classResolveResult.getSubstitutor().getSubstitutionMap();
-                    if (map.size() > 0) {
-                        for (Map.Entry<PsiTypeParameter, PsiType> typeEntry : map.entrySet()) {
-                            PsiClass realReturnClass = PsiUtil.resolveGenericsClassInType(typeEntry.getValue()).getElement();
-                            if(Objects.nonNull(realReturnClass)){
-                                createCondition.setFieldType(realReturnClass.getName());
-                                break;
-                            }
-                        }
-                    }
+                PsiClass realReturnClass = PsiUtil.resolveClassInClassTypeOnly(psiField.getType());
+                if(Objects.nonNull(realReturnClass)) {
+                    createCondition.setFieldType(realReturnClass.getName());
                 }
                 dtoFieldCreateConditions.add(createCondition);
             }
@@ -424,7 +410,6 @@ public class FileCreator {
                     fileContentResults.add(fileContentResult);
                 }
             }
-            Messages.showMessageDialog("Response 生成" + fileContentResults.size()+ "个文件", "Response", null);
             return fileContentResults;
         }
         return new ArrayList<>();
@@ -450,7 +435,6 @@ public class FileCreator {
                 fileContentResult.setName(requestName);
                 fileContentResults.add(fileContentResult);
             }
-            Messages.showMessageDialog("Request 生成" + fileContentResults.size()+ "个文件", "Request", null);
             return fileContentResults;
         }
         return new ArrayList<>();
